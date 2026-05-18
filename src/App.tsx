@@ -1,12 +1,8 @@
 import "./App.css";
-import { Button } from "./components/ui/button";
+import { ProductsPage } from "./pages/products/ProductsPage";
 
 function App() {
-  return (
-    <>
-      <Button>Click me</Button>
-    </>
-  );
+  return <ProductsPage />;
 }
 
 export default App;
