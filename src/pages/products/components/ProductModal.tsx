@@ -10,7 +10,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ShoppingCart, ExternalLink } from "lucide-react";
+// [MODIFICADO] Se reemplazó ExternalLink (era para el link de SHEIN) por Check
+// (se usa para mostrar la confirmación visual al agregar al carrito)
+import { ShoppingCart, Check } from "lucide-react";
+// [AGREGADO] Hook del carrito para poder llamar a addItem desde el modal
+import { useCart } from "@/context/CartContext";
 
 interface ProductModalProps {
   product: Product | null;
@@ -23,13 +27,27 @@ export function ProductModal({
   open,
   onOpenChange,
 }: ProductModalProps) {
-  // All hooks at the top - before ANY early returns
+  // [AGREGADO] Se obtiene la función addItem del contexto del carrito
+  const { addItem } = useCart();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  // [AGREGADO] Estado para mostrar confirmación visual ("¡Agregado!") por 1.5 segundos
+  const [added, setAdded] = useState(false);
 
-  // Reset selected image when product changes
+  // [MODIFICADO] Se agregó setAdded(false) para resetear la confirmación visual
+  // cuando el usuario abre un producto diferente
   useEffect(() => {
     setSelectedImageIndex(0);
+    setAdded(false);
   }, [product?.product_id]);
+
+  // [AGREGADO] Función que agrega el producto al carrito y activa el feedback visual
+  const handleAddToCart = () => {
+    if (!product) return;
+    addItem(product);
+    setAdded(true);
+    // Vuelve al texto original después de 1.5 segundos
+    setTimeout(() => setAdded(false), 1500);
+  };
 
   // All derived state computed after hooks
   const additionalImages: string[] = (() => {
@@ -172,18 +190,27 @@ export function ProductModal({
               {product.in_stock === "true" ? "En stock" : "Sin stock"}
             </span>
           </div>
+
+          {/* [MODIFICADO] Se eliminó el botón "Ver en SHEIN" que redirigía a product.url.
+              El botón de carrito ahora llama a handleAddToCart, se deshabilita si no hay
+              stock y cambia su texto/ícono brevemente como confirmación visual. */}
           <div className="flex gap-3 pt-4 border-t">
-            <Button className="flex-1 gap-2 cursor-pointer">
-              <ShoppingCart className="w-4 h-4" />
-              Agregar al carrito
-            </Button>
             <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => window.open(product.url, "_blank")}
+              className="flex-1 gap-2 cursor-pointer"
+              disabled={product.in_stock !== "true"}
+              onClick={handleAddToCart}
             >
-              <ExternalLink className="w-4 h-4" />
-              Ver en SHEIN
+              {added ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  ¡Agregado!
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-4 h-4" />
+                  {product.in_stock === "true" ? "Agregar al carrito" : "Sin stock"}
+                </>
+              )}
             </Button>
           </div>
         </div>

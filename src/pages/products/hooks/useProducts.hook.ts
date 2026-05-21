@@ -1,12 +1,22 @@
-import { useState, useCallback, useEffect } from "react";
+// [MODIFICADO] Se agregó useMemo a los imports para memoizar la lista de categorías
+import { useState, useCallback, useEffect, useMemo } from "react";
 import type { PaginationParams } from "../schemas/product.schema";
-import { getProductsPaginated } from "../services/product.service";
+// [MODIFICADO] Se reemplazó getProductsPaginated por getProductsFilteredPaginated
+// y se agregaron getCategories y DEFAULT_FILTERS para soportar el sistema de filtros
+import {
+  getProductsFilteredPaginated,
+  getCategories,
+  DEFAULT_FILTERS,
+} from "../services/product.service";
+// [AGREGADO] Tipo ProductFilters para tipar el estado de los filtros
+import type { ProductFilters } from "../services/product.service";
 import type { Product } from "../schemas/product.schema";
 
 interface UseProductsOptions {
   initialTake?: number;
 }
 
+// [MODIFICADO] Se agregaron los campos del sistema de filtros al tipo de retorno del hook
 interface UseProductsReturn {
   products: Product[];
   total: number;
@@ -14,8 +24,16 @@ interface UseProductsReturn {
   take: number;
   isLoading: boolean;
   error: string | null;
-  setPagination: (params: PaginationParams) => void;
-  refetch: () => void;
+  // [AGREGADO] Estado actual de los filtros aplicados
+  filters: ProductFilters;
+  // [AGREGADO] Actualiza uno o más filtros (merge parcial) y resetea la paginación a la página 1
+  setFilters: (partial: Partial<ProductFilters>) => void;
+  // [AGREGADO] Limpia todos los filtros y vuelve a la primera página
+  clearFilters: () => void;
+  // [AGREGADO] Lista de categorías únicas extraídas del JSON para el select de filtros
+  categories: string[];
+  // [AGREGADO] true si hay al menos un filtro activo (para mostrar indicadores en la UI)
+  hasActiveFilters: boolean;
   canGoNext: boolean;
   canGoPrev: boolean;
   nextPage: () => void;
@@ -32,6 +50,9 @@ export function useProducts(
     take: initialTake,
   });
 
+  // [AGREGADO] Estado de los filtros, inicializado sin ningún filtro activo
+  const [filters, setFiltersState] = useState<ProductFilters>(DEFAULT_FILTERS);
+
   const [result, setResult] = useState<{
     data: Product[];
     total: number;
@@ -47,50 +68,73 @@ export function useProducts(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchProducts = useCallback((params: PaginationParams) => {
-    setIsLoading(true);
-    setError(null);
+  // [AGREGADO] Categorías memoizadas: se calculan una sola vez al montar el hook
+  // ya que el JSON no cambia durante la sesión
+  const categories = useMemo(() => getCategories(), []);
 
-    try {
-      const response = getProductsPaginated(params);
-      setResult(response);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-      setResult({ data: [], total: 0, skip: params.skip, take: params.take });
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchProducts(pagination);
-  }, [pagination, fetchProducts]);
-
-  const refetch = useCallback(() => {
-    fetchProducts(pagination);
-  }, [pagination, fetchProducts]);
-
-  const setPagination = useCallback(
-    (params: PaginationParams) => {
-      setPaginationState(params);
-      fetchProducts(params);
+  // [MODIFICADO] fetchProducts ahora recibe currentFilters como segundo parámetro
+  // para pasárselos a getProductsFilteredPaginated
+  const fetchProducts = useCallback(
+    (params: PaginationParams, currentFilters: ProductFilters) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = getProductsFilteredPaginated(params, currentFilters);
+        setResult(response);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unknown error");
+        setResult({ data: [], total: 0, skip: params.skip, take: params.take });
+      } finally {
+        setIsLoading(false);
+      }
     },
-    [fetchProducts]
+    []
   );
 
+  // [MODIFICADO] Se agregó filters a las dependencias del efecto para que cualquier
+  // cambio de filtro dispare una nueva búsqueda automáticamente
+  useEffect(() => {
+    fetchProducts(pagination, filters);
+  }, [pagination, filters, fetchProducts]);
+
+  // [AGREGADO] Actualiza filtros de forma parcial (merge) y resetea la paginación
+  // al inicio para no quedar en una página que ya no existe con los nuevos resultados
+  const setFilters = useCallback((partial: Partial<ProductFilters>) => {
+    setFiltersState((prev) => ({ ...prev, ...partial }));
+    setPaginationState((prev) => ({ ...prev, skip: 0 }));
+  }, []);
+
+  // [AGREGADO] Resetea todos los filtros a sus valores por defecto y vuelve a la página 1
+  const clearFilters = useCallback(() => {
+    setFiltersState(DEFAULT_FILTERS);
+    setPaginationState((prev) => ({ ...prev, skip: 0 }));
+  }, []);
+
+  // [MODIFICADO] nextPage y prevPage ahora solo actualizan el estado de paginación.
+  // El useEffect se encarga de disparar la búsqueda, evitando llamadas duplicadas
   const nextPage = useCallback(() => {
     const newSkip = pagination.skip + pagination.take;
     if (newSkip < result.total) {
-      setPagination({ skip: newSkip, take: pagination.take });
+      setPaginationState({ skip: newSkip, take: pagination.take });
     }
   }, [pagination, result.total]);
 
   const prevPage = useCallback(() => {
-    const newSkip = Math.max(0, pagination.skip - pagination.take);
     if (pagination.skip > 0) {
-      setPagination({ skip: newSkip, take: pagination.take });
+      const newSkip = Math.max(0, pagination.skip - pagination.take);
+      setPaginationState({ skip: newSkip, take: pagination.take });
     }
   }, [pagination]);
+
+  // [AGREGADO] Verdadero si al menos uno de los filtros tiene un valor activo.
+  // Se usa en la UI para mostrar un indicador visual en el botón de filtros.
+  const hasActiveFilters =
+    filters.search !== "" ||
+    filters.category !== "" ||
+    filters.minPrice !== "" ||
+    filters.maxPrice !== "" ||
+    filters.inStockOnly ||
+    filters.hasDiscount;
 
   return {
     products: result.data,
@@ -99,8 +143,12 @@ export function useProducts(
     take: result.take,
     isLoading,
     error,
-    setPagination,
-    refetch,
+    // [AGREGADO] Campos nuevos del sistema de filtros
+    filters,
+    setFilters,
+    clearFilters,
+    categories,
+    hasActiveFilters,
     canGoNext: pagination.skip + pagination.take < result.total,
     canGoPrev: pagination.skip > 0,
     nextPage,
