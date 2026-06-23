@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { testConnection } from './config/db.js';
+import { testConnection } from './src/config/database.js';
+import productosRoutes from './routes/productosRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Rutas se montan acá a medida que se creen
+app.use('/api/productos', productosRoutes);
 
 app.listen(PORT, async () => {
   await testConnection();
