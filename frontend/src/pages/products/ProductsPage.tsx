@@ -1,78 +1,55 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-import { useProducts } from "./hooks/useProducts.hook";
 import { ProductGrid } from "./components/ProductGrid";
-import { ProductSearch } from "./components/ProductSearch";
+/* import { ProductSearch } from "./components/ProductSearch"; */
+import { useProductos } from "./hooks/useProductos.hook";
+import Loader from "@/components/Loading/LoaderComponent";
 
 function ProductsPage() {
   const {
-    products,
-    total,
-    skip,
-    take,
+    productos,
+    meta,
+    page,
     isLoading,
     error,
-    filters,
-    categories,
-    canGoNext,
-    canGoPrev,
-    hasActiveFilters,
-    setFilters,
     nextPage,
     prevPage,
-    clearFilters,
-  } = useProducts({ initialTake: 8 });
+    /* goToPage, */
+  } = useProductos(10);
 
-  const currentPage = Math.floor(skip / take) + 1;
-  const totalPages = Math.ceil(total / take);
+  if (isLoading) return <Loader />;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <ProductSearch
-        searchValue={filters.search}
-        onSearchChange={(value) => setFilters({ search: value })}
-        filters={filters}
-        categories={categories}
-        setFilters={setFilters}
-        clearFilters={clearFilters}
-        hasActiveFilters={hasActiveFilters}
-      />
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Productos</h1>
-        <p className="text-muted-foreground">
-          {total === 0
-            ? "No se encontraron productos"
-            : `Mostrando ${skip + 1} - ${Math.min(skip + take, total)} de ${total} producto${total !== 1 ? "s" : ""}`}
-        </p>
       </div>
       {error && (
         <div className="mb-6 p-4 border border-destructive rounded-lg bg-destructive/10 text-destructive">
           {error}
         </div>
       )}
-      <ProductGrid products={products} isLoading={isLoading} />
-      {!isLoading && products.length > 0 && (
+      <ProductGrid productos={productos} isLoading={isLoading} />
+      {meta && (
         <div className="mt-8 flex items-center justify-center gap-4">
           <Button
             variant="outline"
             size="icon"
             onClick={prevPage}
-            disabled={!canGoPrev}
+            disabled={page === 1}
             className="cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-
           <span className="text-sm">
-            Página {currentPage} de {totalPages}
+            Página {meta.page} de {meta.total}
           </span>
-
           <Button
             variant="outline"
             size="icon"
             onClick={nextPage}
-            disabled={!canGoNext}
+            disabled={page === meta.totalPages}
             className="cursor-pointer"
           >
             <ChevronRight className="w-4 h-4" />

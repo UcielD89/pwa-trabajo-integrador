@@ -2,7 +2,11 @@ import { getAllProductos, getProductoById } from '../services/productosService.j
 
 export async function getAllProductosHandler(req, res) {
   try {
-    const productos = await getAllProductos();
+    // Constantes para paginación
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 10);
+
+    const productos = await getAllProductos({page, limit});
     res.status(200).json(productos);
   } catch (err) {
     res.status(500).json({ error: err.message });
