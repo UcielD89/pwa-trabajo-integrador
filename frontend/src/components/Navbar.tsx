@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { ShoppingCart } from "lucide-react";
 // useCart se usa para leer totalItems y mostrar el badge sobre el ícono del carrito
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/hooks/useCart.hook";
 import { CartDrawer } from "./CartDrawer";
 
 export function Navbar() {
