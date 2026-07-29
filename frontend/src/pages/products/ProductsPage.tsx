@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductGrid } from "./components/ProductGrid";
-/* import { ProductSearch } from "./components/ProductSearch"; */
 import { useProductos } from "./hooks/useProductos.hook";
 import Loader from "@/components/Loading/LoaderComponent";
 
@@ -14,7 +13,6 @@ function ProductsPage() {
     error,
     nextPage,
     prevPage,
-    /* goToPage, */
   } = useProductos(10);
 
   if (isLoading) return <Loader />;
@@ -25,11 +23,6 @@ function ProductsPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Productos</h1>
       </div>
-      {error && (
-        <div className="mb-6 p-4 border border-destructive rounded-lg bg-destructive/10 text-destructive">
-          {error}
-        </div>
-      )}
       <ProductGrid productos={productos} isLoading={isLoading} />
       {meta && (
         <div className="mt-8 flex items-center justify-center gap-4">
@@ -43,7 +36,7 @@ function ProductsPage() {
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <span className="text-sm">
-            Página {meta.page} de {meta.total}
+            Página {meta.page} de {meta.totalPages}
           </span>
           <Button
             variant="outline"

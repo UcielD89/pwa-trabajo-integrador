@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Producto } from "../schemas/product.schema";
+import { formatPrecio } from "../utils/formatPrecio";
 
 interface ProductCardProps {
   producto: Producto;
@@ -37,7 +38,7 @@ export function ProductCard({ producto }: ProductCardProps) {
         </h3>
 
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-lg">{producto.precio}</span>
+          <span className="font-semibold text-lg">{formatPrecio(producto.precio)}</span>
         </div>
 
         <Button

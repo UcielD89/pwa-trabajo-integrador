@@ -9,7 +9,7 @@ export async function getAllProductos({ page = 1, limit = 10 } = {}) {
       total,
       page,
       limit,
-      totalPage: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / limit),
     },
   };
 }

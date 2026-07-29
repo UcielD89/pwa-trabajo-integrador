@@ -3,12 +3,9 @@ import type { PaginatedResponse, Producto } from "../schemas/product.schema";
 import { productosService } from "../services/product.service";
 
 export function useProductos(limit: number = 10) {
-  // States
   const [productos, setProductos] = useState<Producto[]>([]);
-  // States para procesar la paginación
   const [meta, setMeta] = useState<PaginatedResponse<Producto>["meta"] | null>(null);
   const [page, setPage] = useState(1);
-  // Estado y errores
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,9 +18,7 @@ export function useProductos(limit: number = 10) {
         setProductos(res.data);
         setMeta(res.meta);
       } catch {
-        setError(
-          "Error al cargar los productos. Vuelva a intentarlo mas tarde!!",
-        );
+        setError("Error al cargar los productos. Vuelva a intentarlo mas tarde!!");
       } finally {
         setIsLoading(false);
       }
