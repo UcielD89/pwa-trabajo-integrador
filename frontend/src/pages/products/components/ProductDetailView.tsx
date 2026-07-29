@@ -38,7 +38,7 @@ export function ProductDetailView({
            <Button
             size="lg"
             className="w-30 cursor-pointer"
-            onClick={() => navigate("/productos")}
+            onClick={() => navigate("/")}
             aria-live="polite"
           ><ArrowBigLeft /> VOLVER</Button>
           <h1 className="text-3xl font-bold">{producto.nombre}</h1>

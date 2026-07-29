@@ -6,8 +6,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-// useCart provee el estado global del carrito (items, totales y operaciones)
 import { useCart } from "@/hooks/useCart.hook";
+import { formatPrecio } from "@/pages/products/utils/formatPrecio";
 import { Trash2, Minus, Plus, ShoppingBag } from "lucide-react";
 
 interface CartDrawerProps {
@@ -55,7 +55,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                       {product.nombre}
                     </p>
                     <p className="text-sm font-semibold mt-1 text-primary">
-                      {product.precio}
+                      {formatPrecio(product.precio)}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <button
@@ -91,7 +91,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
             <div className="border-t pt-4 mt-4 space-y-4 shrink-0">
               <div className="flex justify-between text-lg font-bold">
                 <span>Total</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>{formatPrecio(totalPrice)}</span>
               </div>
               <div className="flex gap-2">
                 <Button
