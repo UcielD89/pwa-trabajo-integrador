@@ -1,22 +1,34 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductGrid } from "./components/ProductGrid";
-import { useProductos } from "./hooks/useProductos.hook";
 import Loader from "@/components/Loading/LoaderComponent";
+import type { PaginationMeta, Producto } from "./schemas/product.schema";
 
-function ProductsPage() {
-  const {
-    productos,
-    meta,
-    page,
-    isLoading,
-    error,
-    nextPage,
-    prevPage,
-  } = useProductos(10);
+interface ProductsPageProps {
+  productos: Producto[];
+  meta: PaginationMeta | null;
+  page: number;
+  isLoading: boolean;
+  error: string | null;
+  nextPage: () => void;
+  prevPage: () => void;
+}
 
+function ProductsPage({
+  productos,
+  meta,
+  page,
+  isLoading,
+  error,
+  nextPage,
+  prevPage,
+}: ProductsPageProps) {
   if (isLoading) return <Loader />;
   if (error) return <p>{error}</p>;
+
+  const totalPages = meta?.totalPages ?? 1;
+  const hasPrev = page > 1;
+  const hasNext = meta !== null && page < totalPages;
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -24,25 +36,25 @@ function ProductsPage() {
         <h1 className="text-3xl font-bold mb-2">Productos</h1>
       </div>
       <ProductGrid productos={productos} isLoading={isLoading} />
-      {meta && (
+      {meta && meta.total > 0 && (
         <div className="mt-8 flex items-center justify-center gap-4">
           <Button
             variant="outline"
             size="icon"
             onClick={prevPage}
-            disabled={page === 1}
+            disabled={!hasPrev}
             className="cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <span className="text-sm">
-            Página {meta.page} de {meta.totalPages}
+            Página {page} de {totalPages}
           </span>
           <Button
             variant="outline"
             size="icon"
             onClick={nextPage}
-            disabled={page === meta.totalPages}
+            disabled={!hasNext}
             className="cursor-pointer"
           >
             <ChevronRight className="w-4 h-4" />
