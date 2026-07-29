@@ -2,6 +2,16 @@ import { useEffect, useState } from "react";
 import type { Categoria } from "../schemas/categoria.schema";
 import { categoriasService } from "../services/categoria.service";
 
+function dedupeByNombre(categorias: Categoria[]): Categoria[] {
+  const seen = new Set<string>();
+  return categorias.filter((categoria) => {
+    const key = categoria.nombre.trim().toLocaleLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function useCategorias() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,7 +26,7 @@ export function useCategorias() {
 
       try {
         const response = await categoriasService.getCategorias();
-        if (active) setCategorias(response);
+        if (active) setCategorias(dedupeByNombre(response));
       } catch {
         if (active) setError("No se pudieron cargar las categorías");
       } finally {
