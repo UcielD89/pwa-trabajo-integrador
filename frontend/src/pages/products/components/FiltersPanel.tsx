@@ -11,20 +11,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { CategoryCombobox } from "./CategoryCombobox";
 import type { Categoria } from "../schemas/categoria.schema";
 import {
   EMPTY_PRODUCTO_FILTERS,
   type ProductoFilters,
 } from "../schemas/productFilters.schema";
-
-const ALL_CATEGORIES = "__all__";
 
 interface FiltersPanelProps {
   open: boolean;
@@ -113,27 +105,13 @@ function FiltersForm({
 
       <div className="space-y-2">
         <Label htmlFor="filter-categoria">Categoría</Label>
-        <Select
-          value={categoria === "" ? ALL_CATEGORIES : categoria}
+        <CategoryCombobox
+          id="filter-categoria"
+          categorias={categorias}
+          value={categoria}
+          onChange={setCategoria}
           disabled={isCategoriesLoading || categoriesError !== null}
-          onValueChange={(value) =>
-            setCategoria(value === ALL_CATEGORIES ? "" : value)
-          }
-        >
-          <SelectTrigger id="filter-categoria" className="w-full">
-            <SelectValue placeholder="Todas las categorías" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL_CATEGORIES}>
-              Todas las categorías
-            </SelectItem>
-            {categorias.map((cat) => (
-              <SelectItem key={cat.id} value={String(cat.id)}>
-                {cat.nombre}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        />
         {isCategoriesLoading && (
           <p className="text-xs text-muted-foreground">Cargando categorías...</p>
         )}
