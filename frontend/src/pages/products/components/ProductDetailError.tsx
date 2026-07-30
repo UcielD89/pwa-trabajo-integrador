@@ -1,4 +1,3 @@
-// [AGREGADO] Estado de error para la página de detalle de producto
 import { useNavigate } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";

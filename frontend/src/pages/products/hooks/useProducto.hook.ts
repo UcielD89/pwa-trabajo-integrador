@@ -3,13 +3,11 @@ import type { Producto } from "../schemas/product.schema";
 import { productosService } from "../services/product.service";
 
 export function useProducto(id: number) {
-  // States
   const [producto, setProducto] = useState<Producto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Validación del campo ID
     if (!id) return;
 
     const fetchProducto = async () => {

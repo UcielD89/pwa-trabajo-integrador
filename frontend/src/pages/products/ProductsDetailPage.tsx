@@ -1,4 +1,3 @@
-// [AGREGADO] Página de detalle de producto con routing, fetch y estado
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useProducto } from "./hooks/useProducto.hook";
@@ -20,7 +19,6 @@ export function ProductsDetailPage() {
 
   const { producto, isLoading, error } = useProducto(isValidId ? idNumber : 0);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {

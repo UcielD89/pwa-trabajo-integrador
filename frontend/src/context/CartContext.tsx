@@ -1,8 +1,7 @@
 import { useState, useCallback, createContext } from "react";
 import type { ReactNode } from "react";
 import type { Producto } from "@/pages/products/schemas/product.schema";
-import type { CartItem } from "@/types/card.type";
-import type { CartContextValue } from "@/types/card.type";
+import type { CartItem, CartContextValue } from "@/types/cart.type";
 
 export const CartContext = createContext<CartContextValue | null>(null);
 
@@ -59,10 +58,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = useCallback(() => setItems([]), []);
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
-  const totalPrice = items.reduce((sum, i) => {
-    const price = parseFloat(i.product.precio.replace("$", ""));
-    return sum + (isNaN(price) ? 0 : price * i.quantity);
-  }, 0);
+  const totalPrice = items.reduce((sum, i) => sum + i.product.precio * i.quantity, 0);
 
   return (
     <CartContext.Provider

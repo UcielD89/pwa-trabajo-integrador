@@ -1,47 +1,77 @@
-// [ARCHIVO NUEVO] Barra de navegación superior persistente.
-// Sticky (se mantiene visible al hacer scroll) gracias a "sticky top-0 z-40".
-// Contiene el nombre del sitio y el botón del carrito con el conteo de ítems.
-
 import { useState } from "react";
-import { ShoppingCart } from "lucide-react";
-// useCart se usa para leer totalItems y mostrar el badge sobre el ícono del carrito
+import { Search, ShoppingCart } from "lucide-react";
 import { useCart } from "@/hooks/useCart.hook";
 import { CartDrawer } from "./CartDrawer";
+import { FiltersPanel } from "@/pages/products/components/FiltersPanel";
+import type { ProductoFilters } from "@/pages/products/schemas/productFilters.schema";
+import type { Categoria } from "@/pages/products/schemas/categoria.schema";
 
-export function Navbar() {
-  // Solo se necesita totalItems para el badge; no se suscribe a toda la lista de ítems
+interface NavbarProps {
+  categorias: Categoria[];
+  isCategoriesLoading: boolean;
+  categoriesError: string | null;
+  filters: ProductoFilters;
+  hasActiveFilters: boolean;
+  onApplyFilters: (filters: ProductoFilters) => void;
+  onClearFilters: () => void;
+}
+
+export function Navbar({
+  categorias,
+  isCategoriesLoading,
+  categoriesError,
+  filters,
+  hasActiveFilters,
+  onApplyFilters,
+  onClearFilters,
+}: NavbarProps) {
   const { totalItems } = useCart();
-
-  // Controla si el modal del carrito está abierto
   const [cartOpen, setCartOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   return (
     <>
       <nav className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          {/* Nombre/logo del sitio */}
           <span className="font-bold text-xl tracking-tight">PWA Store</span>
-
-          {/* Botón del carrito con badge que muestra la cantidad de ítems.
-              El badge solo se renderiza cuando totalItems > 0. */}
-          <button
-            onClick={() => setCartOpen(true)}
-            className="relative p-2 hover:bg-muted rounded-full transition-colors cursor-pointer"
-            aria-label="Abrir carrito"
-          >
-            <ShoppingCart className="w-6 h-6" />
-            {totalItems > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold px-1">
-                {/* Muestra "99+" para no desbordar el badge si hay más de 99 ítems */}
-                {totalItems > 99 ? "99+" : totalItems}
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setFiltersOpen(true)}
+              className="relative p-2 hover:bg-muted rounded-full transition-colors cursor-pointer"
+              aria-label="Buscar y filtrar productos"
+              aria-expanded={filtersOpen}
+            >
+              <Search className="w-6 h-6" />
+              {hasActiveFilters && (
+                <span className="absolute top-1 right-1 size-2 rounded-full bg-primary ring-2 ring-background" />
+              )}
+            </button>
+            <button
+              onClick={() => setCartOpen(true)}
+              className="relative p-2 hover:bg-muted rounded-full transition-colors cursor-pointer"
+              aria-label="Abrir carrito"
+            >
+              <ShoppingCart className="w-6 h-6" />
+              {totalItems > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold px-1">
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </nav>
-
-      {/* Modal del carrito: se monta aquí para que sea accesible desde toda la app */}
       <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
+      <FiltersPanel
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        categorias={categorias}
+        isCategoriesLoading={isCategoriesLoading}
+        categoriesError={categoriesError}
+        initialValues={filters}
+        onApply={onApplyFilters}
+        onClear={onClearFilters}
+      />
     </>
   );
 }
